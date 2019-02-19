@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react"
+import React, {useState, useEffect, useRef} from "react"
 import styled from "styled-components"
 import Text from "~/components/_ui/Text"
 import ditherBackground from "~/lib/ditherBackground"
@@ -53,17 +53,24 @@ const Label = styled(Text)`
   }
 `
 
-export const IconWithLabel = ({icon, title, onOpen}) => {
-  const [isSelected, setIsSelected] = useState(false)
+export const IconWithLabel = ({icon, title, isSelected, onSelect, onOpen}) => {
+
+  const ref = useRef();
+
+  useEffect(() => {
+    isSelected && ref.current.focus()
+  }, [isSelected])
 
   return (
     <StyledIconWithLabel
+      ref={ref}
       tabIndex="0"
-      onFocus={() => setIsSelected(true)}
-      onBlur={() => setIsSelected(false)}
+      onFocus={() => onSelect(true)}
+      onBlur={() => onSelect(false)}
       isSelected={isSelected}
       onDoubleClick={onOpen}
       onTouchEnd={onOpen}
+      onKeyPress={({key}) => key === 'Enter' && isSelected && onOpen()}
     >
       <Icon src={icon} isSelected={isSelected} />
       <Label isSelected={isSelected}>{title}</Label>
@@ -71,13 +78,15 @@ export const IconWithLabel = ({icon, title, onOpen}) => {
   )
 }
 
-export const ApplicationIcon = ({application, runtimeProps}) => {
+export const ApplicationIcon = ({application, runtimeProps, isSelected, onSelect}) => {
   const {createTask} = useTaskManager()
 
   return (
     <IconWithLabel
       icon={application.iconLarge}
       title={application.title}
+      isSelected={isSelected}
+      onSelect={onSelect}
       onOpen={() => createTask({application, ...runtimeProps})}
     />
   )
